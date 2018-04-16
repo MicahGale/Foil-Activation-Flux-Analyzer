@@ -1,4 +1,4 @@
-#!/bin/python
+#!/bin/python3
 
 '''
 Copyright 2018 Micah Gale
@@ -24,17 +24,18 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 '''
 
 import xlrd
-
+import natAbund
+from dataStruct import *
 class foilExper():
     '''
     A class for parsing foil activation excel files
     '''
     def __init__(self, Name):
        self.book=xlrd.open_workbook(filename=Name)
-       self.foilMass=''
+       self.foil=''
     
-    def getFoilMass(self, foil):
-        if (self.foilMass==''):  #if foilMass isn't set populate it
+    def parseFoils(self):
+        if (self.foil==''):  #if foilMass isn't set populate it
             #pulls out the excel sheet with the foil properties
             sheet=self.book.sheet_by_name('foilData')
         
@@ -42,16 +43,22 @@ class foilExper():
             #makes it tolerant to people moving around columns
             headers=sheet.row(0)
             maxR=   sheet.nrows  #get the number of rows
-            massCol=foilExper.findColumn(headers,'Mass (g)')
+            massCol=foilExper.findColumn(headers,'Mass')
             foilCol=foilExper.findColumn(headers,'Foil')
+            thickCol=foilExper.findColumn(headers,'Thickness')
             
-            self.foilMass={}
+            self.foil={}
 
             for i in range(0,maxR):
                 #add all of the foil masses to the dictionary
-                self.foilMass[sheet.cell(i,foilCol).value]=sheet.cell(i,massCol).value
+                #TODO actually care about the materials which are used
+                buffer=foil('In',sheet.cell(i,thickCol).value,sheet.cell(i,massCol).value)
+                #parses the foil object properties
+                self.foil[sheet.cell(i,foilCol).value]=buffer
         
-        return self.foilMass[foil]
+    
+    def parseCounts(self):
+        sheet=self.book.sheet_by_name('CountData')
         
         
     '''
@@ -71,5 +78,5 @@ class foilExper():
        return -1
 
 test=foilExper('test_sigma.xlsx')
-print(test.getFoilMass('A'))
-
+test.parseFoils()
+print(test.foil)

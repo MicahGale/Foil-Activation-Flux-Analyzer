@@ -49,5 +49,13 @@ class foil():
 Represents a single counting session for a single foil.
 '''
 class count():
-    pass
+
+    def __init__(self,start,end,counts):
+        self.start=start
+        self.end=end
+        self.counts=counts
+    def __repr__(self):
+        return self.__str__()
+    def __str__(self):
+        return "Start: "+str(self.start)+" End: "+str(self.end)+" Counts:"+str(self.counts)
 

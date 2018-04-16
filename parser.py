@@ -24,7 +24,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 '''
 
 import xlrd
-import natAbund
+from  natAbund import *
 from dataStruct import *
 class foilExper():
     '''
@@ -56,10 +56,28 @@ class foilExper():
                 #parses the foil object properties
                 self.foil[sheet.cell(i,foilCol).value]=buffer
         
-    
+    '''
+    Parses the counts data, and stores them inside the appropriate foils
+    '''
     def parseCounts(self):
         sheet=self.book.sheet_by_name('CountData')
+        headers=sheet.row(0) #get the header row
+
+        #finds the columns which are desired.
+        foilCol=foilExper.findColumn(headers,'Foil')
+        startCol=foilExper.findColumn(headers,'Count Start')
+        endCol=foilExper.findColumn(headers,  'Count End')
+        countCol=foilExper.findColumn(headers, 'Counts')
         
+        end=sheet.nrows
+
+        #parses the data
+        for i in range(0,end):
+            if( sheet.cell(i,foilCol).value!=''): #if an actual data row
+                buffer=count(sheet.cell(i,startCol).value,sheet.cell(i,endCol).value,
+                        sheet.cell(i,countCol).value)
+                #add the counts to the appropriate foil
+                self.foil[sheet.cell(i,foilCol).value].addCount(buffer)
         
     '''
     Looks through the header row provided to find the desired column number
@@ -79,4 +97,4 @@ class foilExper():
 
 test=foilExper('test_sigma.xlsx')
 test.parseFoils()
-print(test.foil)
+test.parseCounts()

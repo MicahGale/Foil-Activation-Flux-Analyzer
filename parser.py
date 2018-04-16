@@ -49,7 +49,7 @@ class foilExper():
             
             self.foil={}
 
-            for i in range(0,maxR):
+            for i in range(1,maxR):
                 #add all of the foil masses to the dictionary
                 #TODO actually care about the materials which are used
                 buffer=foil('In',sheet.cell(i,thickCol).value,sheet.cell(i,massCol).value)
@@ -72,12 +72,50 @@ class foilExper():
         end=sheet.nrows
 
         #parses the data
-        for i in range(0,end):
+        for i in range(1,end):
             if( sheet.cell(i,foilCol).value!=''): #if an actual data row
                 buffer=count(sheet.cell(i,startCol).value,sheet.cell(i,endCol).value,
                         sheet.cell(i,countCol).value)
                 #add the counts to the appropriate foil
                 self.foil[sheet.cell(i,foilCol).value].addCount(buffer)
+
+    def parsePosition(self):
+        sheet=self.book.sheet_by_name('PositionData')
+        header=sheet.row(0)
+        foilCol=foilExper.findColumn(header,'Foil')
+        layerCol=foilExper.findColumn(header,'Layer')
+        posCol=foilExper.findColumn(header,'Position')
+        endCol=foilExper.findColumn(header,'Finish Activation')
+        
+        #pulls out all of the layer numbers
+        #finds the max one and then useds that to initialize
+        #the list of dictionaries
+        layers=[]
+        for cell in sheet.col(layerCol):
+            if(cell.ctype==2): #if this cell is a number
+                layers.append(cell.value)
+
+        end= sheet.nrows
+        #initializes the list with enough space to breath
+        self.positions=[{} for i in range(0,int(max(layers))+1)]
+        for i in range(1,end):
+            if(sheet.cell(i,foilCol).value!=''): #if it isn't blank
+                foil=sheet.cell(i,foilCol).value
+                self.foil[foil].addEndTime(sheet.cell(i,endCol).value)
+              
+                #update the end of the irradiation for the foil
+                layer=int(sheet.cell(i,layerCol).value)
+                pos=int(sheet.cell(i,posCol).value)
+                
+                #check for initialization
+                if layer not in self.positions or pos not in self.positions[layer]:
+                    self.positions[layer][pos]=position(self.foil[foil]) 
+                    #if the object doesn't exist make it and add the foil
+                else: 
+                    #otherwise just pop the appropriate foil onto the stack
+                    self.positions[layer][pos].addFoil(self.foil[foil])
+
+                
         
     '''
     Looks through the header row provided to find the desired column number
@@ -98,3 +136,5 @@ class foilExper():
 test=foilExper('test_sigma.xlsx')
 test.parseFoils()
 test.parseCounts()
+test.parsePosition()
+print(test.positions[5][7].foil[0].calcN0())

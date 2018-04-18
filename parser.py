@@ -24,6 +24,8 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 '''
 
 import xlrd
+import matplotlib.pyplot as plt
+import numpy as np
 from  natAbund import *
 from dataStruct import *
 class foilExper():
@@ -116,7 +118,32 @@ class foilExper():
                     self.positions[layer][pos].addFoil(self.foil[foil])
 
                 
+    def parse(self):
+        self.parseFoils()
+        self.parseCounts()
+        self.parsePosition()
+
+
+    def plotRadial(self, level):
+        plt.figure()
+
+        row=self.positions[level] #pull out underlying dict
+        size=len(row)
+        pos=np.zeros(size)
+        N0=np.zeros(size)
+        sigma=np.zeros(size)
         
+        pointer=0
+
+        for  key, val in row.items(): #iterate over the things
+            pos[pointer]=key
+            ret=val.calcN0() #get the activity term
+            N0[pointer]=ret[0] #get N0
+            sigma[pointer]=ret[1]
+            pointer=pointer+1
+        #plot it!    
+        plt.errorbar(pos,N0,yerr=sigma, fmt='o')
+        plt.show()
     '''
     Looks through the header row provided to find the desired column number
 
@@ -134,7 +161,5 @@ class foilExper():
        return -1
 
 test=foilExper('test_sigma.xlsx')
-test.parseFoils()
-test.parseCounts()
-test.parsePosition()
-print(test.positions[5][7].foil[0].calcN0())
+test.parse()
+test.plotRadial(5)

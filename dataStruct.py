@@ -39,6 +39,18 @@ class position():
     def addFoil(self,foil):
         self.foil.append(foil)
 
+    def calcN0(self):
+
+        N0=0
+        sigmaAcum=0
+
+        for foil in self.foil:
+            ret=foil.calcN0()  
+            N0=N0+ret[0]    #accumulates the total
+            sigmaAcum=sigmaAcum+ret[1]^2  #add std dev in quadrature
+
+        return (N0, math.sqrt(sigmaAcum)) #return tuple of value and std dev
+
 '''
 Represents a single foil. Holds it properties and the counts which were taken
 of it

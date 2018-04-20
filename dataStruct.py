@@ -51,12 +51,12 @@ class position():
 
         return (N0, math.sqrt(sigmaAcum)) #return tuple of value and std dev
     
-    def calcRelFlux(self):
+    def calcRelFlux(self,start):
         flux=0
         sigmaAcum=0
 
         for foil in self.foil:
-            ret=foil.calcN0()
+            ret=foil.calcRelFlux(start)
             flux=flux+ret[0]    #accumulates the total
             sigmaAcum=sigmaAcum+ret[1]**2  #add std dev in quadrature
 
@@ -88,14 +88,14 @@ class foil():
         
         multiplier=(1-math.exp(-self.decayConst*(self.end-start)))/self.mass
         flux=N0[0]*multiplier
-        sigma=N[1]*multiplier #propogate counting uncertainty 
+        sigma=N0[1]*multiplier #propogate counting uncertainty 
 
         return (flux, sigma)
 
     def calcN0(self):
         #TODO switch from hardcoded half-lives
         self.halfLife=3257.4 #[s] half life for Indium 116-m from NuDat 2.7
-        self.decayConst=-math.log(0.5)/halfLife #calculate the decay constant
+        self.decayConst=-math.log(0.5)/self.halfLife #calculate the decay constant
 
         counts=0
         denominator=0

@@ -120,19 +120,20 @@ class foilExper():
     Parses the start time for the experiment.
     '''
     def parseStart(self):
-        global DAY_TO_SECOND
+        global DAY_TO_SEC
         sheet=self.book.sheet_by_name('ExperimentInfo')
         header=sheet.row(0)
         col=foilExper.findColumn(header,'TimeStamp')
         header=sheet.col(0)
         row=foilExper.findColumn(header,'Source Insertion')
-        self.start=sheet.cell(row,col).value*DAY_TO_SECOND #caches the
+        self.start=sheet.cell(row,col).value*DAY_TO_SEC  #caches the
         #experiment start time in seconds
 
     def parse(self):
         self.parseFoils()
         self.parseCounts()
         self.parsePosition()
+        self.parseStart()
 
 
     def plotRadial(self, level):
@@ -141,19 +142,22 @@ class foilExper():
         row=self.positions[level] #pull out underlying dict
         size=len(row)
         pos=np.zeros(size)
-        N0=np.zeros(size)
+      #  N0=np.zeros(size)
+        flux=np.zeros(size)
         sigma=np.zeros(size)
         
         pointer=0
 
         for  key, val in row.items(): #iterate over the things
             pos[pointer]=key
-            ret=val.calcN0() #get the activity term
-            N0[pointer]=ret[0] #get N0
+            ret=val.calcRelFlux(self.start)
+      #      ret=val.calcN0() #get the activity term
+      #      N0[pointer]=ret[0] #get N0
+            flux[pointer]=ret[0]
             sigma[pointer]=ret[1]
             pointer=pointer+1
         #plot it!    
-        plt.errorbar(pos,N0,yerr=sigma, fmt='o')
+        plt.errorbar(pos,flux,yerr=sigma, fmt='o')
         plt.show()
     '''
     Looks through the header row provided to find the desired column number
@@ -173,5 +177,4 @@ class foilExper():
 
 test=foilExper('test_sigma.xlsx')
 test.parse()
-test.getStart()
 test.plotRadial(5)

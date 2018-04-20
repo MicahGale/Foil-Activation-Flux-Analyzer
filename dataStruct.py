@@ -62,6 +62,15 @@ class position():
 
         return (flux, math.sqrt(sigmaAcum)) #return tuple of value and std dev
 
+    def __repr__(self):
+        return self.__str__()
+
+    def __str__(self):
+		for foil in self.foil:
+            out=out+"\nFoil "+str(i)+": "+foil.__str__()
+            i++
+        return out
+
 
 '''
 Represents a single foil. Holds it properties and the counts which were taken
@@ -105,10 +114,25 @@ class foil():
             ret=counter.getCountContribs(self.end,self.decayConst)
             counts=counts+ret[0]
             denominator=denominator+ret[2]
-        activity=(counts)/denominator #[Bq]
-        sigma=(math.sqrt(counts))/denominator
+        if(counts>0):
+            activity=(counts)/denominator #[Bq]
+            sigma=(math.sqrt(counts))/denominator
+        else:            #if no counts were taken say it was 0
+            activity=0
+            sigma=0
 
-        return (activity,sigma)
+        return (activity,sigm)
+    
+    def __repr__(self):
+        return self.__str__()
+    def __str__(self):
+        out="Material: "+str(self.mat)+"\nThickness: "+str(self.thick)
+        out=out+"\nMass: "+str(self.mass)+"\nEnd: "+str(self.end)
+        i=0
+        for count in self.counts:
+            out=out+"\nCount "+str(i)+": "+count.__str__()
+            i++
+        return out
 
 '''
 Represents a single counting session for a single foil.

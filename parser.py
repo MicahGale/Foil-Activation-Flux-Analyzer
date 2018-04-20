@@ -181,4 +181,4 @@ class foilExper():
 
 test=foilExper('test_sigma.xlsx')
 test.parse()
-test.plotRadial(5)
+test.plotRadial(1)

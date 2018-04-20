@@ -66,9 +66,11 @@ class position():
         return self.__str__()
 
     def __str__(self):
-		for foil in self.foil:
+        out=''
+        i=0
+        for foil in self.foil:
             out=out+"\nFoil "+str(i)+": "+foil.__str__()
-            i++
+            i=i+1
         return out
 
 
@@ -121,7 +123,7 @@ class foil():
             activity=0
             sigma=0
 
-        return (activity,sigm)
+        return (activity,sigma)
     
     def __repr__(self):
         return self.__str__()
@@ -131,7 +133,7 @@ class foil():
         i=0
         for count in self.counts:
             out=out+"\nCount "+str(i)+": "+count.__str__()
-            i++
+            i=i+1
         return out
 
 '''

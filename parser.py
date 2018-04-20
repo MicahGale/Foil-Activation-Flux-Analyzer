@@ -156,7 +156,11 @@ class foilExper():
             flux[pointer]=ret[0]
             sigma[pointer]=ret[1]
             pointer=pointer+1
-        #plot it!    
+        #plot it!
+        biggest=max(flux)
+        for i in range(0,flux.size):
+            flux[i]=flux[i]/biggest
+            sigma[i]=sigma[i]/biggest
         plt.errorbar(pos,flux,yerr=sigma, fmt='o')
         plt.show()
     '''

@@ -47,9 +47,21 @@ class position():
         for foil in self.foil:
             ret=foil.calcN0()  
             N0=N0+ret[0]    #accumulates the total
-            sigmaAcum=sigmaAcum+ret[1]^2  #add std dev in quadrature
+            sigmaAcum=sigmaAcum+ret[1]**2  #add std dev in quadrature
 
         return (N0, math.sqrt(sigmaAcum)) #return tuple of value and std dev
+    
+    def calcRelFlux(self):
+        flux=0
+        sigmaAcum=0
+
+        for foil in self.foil:
+            ret=foil.calcN0()
+            flux=flux+ret[0]    #accumulates the total
+            sigmaAcum=sigmaAcum+ret[1]**2  #add std dev in quadrature
+
+        return (flux, math.sqrt(sigmaAcum)) #return tuple of value and std dev
+
 
 '''
 Represents a single foil. Holds it properties and the counts which were taken
@@ -70,21 +82,31 @@ class foil():
     def addCount(self,count):
         self.counts.append(count) #adds it to the array of counts
 
+    def calcRelFlux(self,start):
+        N0=self.calcN0() #calcs the initial foil activity
+        #also loads up my hacky decay constants
+        
+        multiplier=(1-math.exp(-self.decayConst*(self.end-start)))/self.mass
+        flux=N0[0]*multiplier
+        sigma=N[1]*multiplier #propogate counting uncertainty 
+
+        return (flux, sigma)
+
     def calcN0(self):
         #TODO switch from hardcoded half-lives
-        halfLife=3257.4 #[s] half life for Indium 116-m from NuDat 2.7
-        decayConst=-math.log(0.5)/halfLife #calculate the decay constant
+        self.halfLife=3257.4 #[s] half life for Indium 116-m from NuDat 2.7
+        self.decayConst=-math.log(0.5)/halfLife #calculate the decay constant
 
         counts=0
         denominator=0
         sigma=0
 
         for counter in self.counts:
-            ret=counter.getCountContribs(self.end,decayConst)
+            ret=counter.getCountContribs(self.end,self.decayConst)
             counts=counts+ret[0]
             denominator=denominator+ret[2]
-        activity=(counts*decayConst)/denominator #[Bq]
-        sigma=(math.sqrt(counts)*decayConst)/denominator
+        activity=(counts*self.decayConst)/denominator #[Bq]
+        sigma=(math.sqrt(counts)*self.decayConst)/denominator
 
         return (activity,sigma)
 
@@ -114,7 +136,6 @@ class count():
     @return touple (counts, sigma, exponential term)
     '''
     def getCountContribs(self,endAct,decayConst):
-        print(self.__str__())
         sigma=math.sqrt(float(self.counts))
         decay=math.exp(-decayConst*(self.start-endAct))
         decay=decay-math.exp(-decayConst*(self.end-endAct))

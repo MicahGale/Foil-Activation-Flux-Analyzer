@@ -116,8 +116,19 @@ class foilExper():
                 else: 
                     #otherwise just pop the appropriate foil onto the stack
                     self.positions[layer][pos].addFoil(self.foil[foil])
+    '''
+    Parses the start time for the experiment.
+    '''
+    def parseStart(self):
+        global DAY_TO_SECOND
+        sheet=self.book.sheet_by_name('ExperimentInfo')
+        header=sheet.row(0)
+        col=foilExper.findColumn(header,'TimeStamp')
+        header=sheet.col(0)
+        row=foilExper.findColumn(header,'Source Insertion')
+        self.start=sheet.cell(row,col).value*DAY_TO_SECOND #caches the
+        #experiment start time in seconds
 
-                
     def parse(self):
         self.parseFoils()
         self.parseCounts()
@@ -162,4 +173,5 @@ class foilExper():
 
 test=foilExper('test_sigma.xlsx')
 test.parse()
+test.getStart()
 test.plotRadial(5)

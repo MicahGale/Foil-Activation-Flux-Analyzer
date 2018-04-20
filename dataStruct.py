@@ -105,8 +105,8 @@ class foil():
             ret=counter.getCountContribs(self.end,self.decayConst)
             counts=counts+ret[0]
             denominator=denominator+ret[2]
-        activity=(counts*self.decayConst)/denominator #[Bq]
-        sigma=(math.sqrt(counts)*self.decayConst)/denominator
+        activity=(counts)/denominator #[Bq]
+        sigma=(math.sqrt(counts))/denominator
 
         return (activity,sigma)
 

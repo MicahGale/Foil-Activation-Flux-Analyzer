@@ -1,3 +1,8 @@
 *.xlsx
 *.xlsm
 *.swp
+*.png
+*.pdf
+*.pyc
+__pycache__/*
+build/*

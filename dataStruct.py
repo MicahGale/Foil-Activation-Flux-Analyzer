@@ -113,7 +113,7 @@ class foil():
         sigma=0
 
         for counter in self.counts:
-            ret=counter.getCountContribs(self.end,self.decayConst)
+            ret=counter.getCountContribs(self.end,self.decayConst)           
             counts=counts+ret[0]
             denominator=denominator+ret[2]
         if(counts>0):

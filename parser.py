@@ -163,6 +163,34 @@ class foilExper():
             sigma[i]=sigma[i]/biggest
         plt.errorbar(pos,flux,yerr=sigma, fmt='o')
         plt.show()
+
+    def plotAxial(self, position):
+        fig=plt.figure()
+        ax=fig.add_subplot(1,1,1)
+        size=len(self.positions)
+        pos=np.zeros(size)
+      #  N0=np.zeros(size)
+        flux=np.zeros(size)
+        sigma=np.zeros(size)
+        
+        pointer=0
+
+        for  key, val in enumerate(self.positions): #iterate over the things
+            if(val!={}):
+                pos[pointer]=key
+                ret=val[position].calcRelFlux(self.start)
+                flux[pointer]=ret[0]
+                sigma[pointer]=ret[1]
+                pointer=pointer+1
+        #plot it!
+        biggest=max(flux)
+        for i in range(0,flux.size):
+            flux[i]=flux[i]/biggest
+            sigma[i]=sigma[i]/biggest
+        plt.errorbar(pos,flux,yerr=sigma, fmt='o')
+        #ax.set_yscale('log')
+        ax.set_xscale('log')
+        plt.show()
     '''
     Looks through the header row provided to find the desired column number
 
@@ -179,6 +207,8 @@ class foilExper():
            i=i+1
        return -1
 
-test=foilExper('test_sigma.xlsx')
+test=foilExper('fullLoad.xlsx')
 test.parse()
-test.plotRadial(1)
+#print(test.positions[1][8])
+#test.plotRadial(1)
+test.plotAxial(7)

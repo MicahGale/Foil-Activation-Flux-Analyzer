@@ -27,8 +27,7 @@ TODO beautify graph
 TODO create output table
 TODO factor in positions in cm
 TODO add more comments
-TODO update uncertaintity propogation
-
+TODO update excel template
 '''
 import xlrd
 import matplotlib.pyplot as plt
@@ -98,6 +97,9 @@ class foilExper():
         layerCol=foilExper.findColumn(header,'Layer')
         posCol=foilExper.findColumn(header,'Position')
         endCol=foilExper.findColumn(header,'Finish Activation')
+        xCol=foilExper.findColumn(header,'X [cm]')
+        yCol=foilExper.findColumn(header,'Y [cm]')
+        zCol=foilExper.findColumn(header,'Z [cm]')
         
         #pulls out all of the layer numbers
         #finds the max one and then useds that to initialize
@@ -118,10 +120,13 @@ class foilExper():
                 #update the end of the irradiation for the foil
                 layer=int(sheet.cell(i,layerCol).value)
                 pos=int(sheet.cell(i,posCol).value)
-                
+                X=sheet.cell(i,xCol).value
+                Y=sheet.cell(i,yCol).value
+                Z=sheet.cell(i,zCol).value
+
                 #check for initialization
                 if layer not in self.positions or pos not in self.positions[layer]:
-                    self.positions[layer][pos]=position(self.foil[foil]) 
+                    self.positions[layer][pos]=position(self.foil[foil],X,Y,Z) 
                     #if the object doesn't exist make it and add the foil
                 else: 
                     #otherwise just pop the appropriate foil onto the stack
@@ -159,7 +164,7 @@ class foilExper():
         pointer=0
 
         for  key, val in row.items(): #iterate over the things
-            pos[pointer]=key
+            pos[pointer]=val.X
             #ret=val.calcRelFlux(self.start)
             ret=val.calcSpecRxRate(self.start)
       #      ret=val.calcN0() #get the activity term
@@ -188,7 +193,7 @@ class foilExper():
 
         for  key, val in enumerate(self.positions): #iterate over the things
             if(val!={}):
-                pos[pointer]=key
+                pos[pointer]=val[position].Z
                 ret=val[position].calcSpecRxRate(self.start)
                 flux[pointer]=ret[0]
                 sigma[pointer]=ret[1]
@@ -199,7 +204,7 @@ class foilExper():
         #    flux[i]=flux[i]/biggest
        #     sigma[i]=sigma[i]/biggest
         plt.errorbar(pos,flux,yerr=sigma, fmt='x')
-        #ax.set_yscale('log')
+        ax.set_yscale('log')
         ax.set_xscale('log')
         plt.show()
     '''
@@ -220,7 +225,7 @@ class foilExper():
 
 test=foilExper('fullLoad.xlsx')
 test.parse()
-test.plotRadial(5)
+#test.plotRadial(5)
 test.plotAxial(7)
 #print(test.positions[1][8])
 #test.plotRadial(1)

@@ -33,8 +33,11 @@ Represents a single location in the pile. May contain multiple foils.
 '''
 class position():
     
-    def __init__(self,foil):
+    def __init__(self,foil,X,Y,Z):
         self.foil=[foil]
+        self.X=X
+        self.Y=Y
+        self.Z=Z
 
     def addFoil(self,foil):
         self.foil.append(foil)

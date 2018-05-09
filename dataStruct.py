@@ -141,11 +141,14 @@ Represents a single counting session for a single foil.
 '''
 class count():
 
-    def __init__(self,start,end,counts):
+    def __init__(self,start,end,counts,bgCounts,bgTime):
         global DAY_TO_SEC
         self.start=start*DAY_TO_SEC
         self.end=end*DAY_TO_SEC
-        self.counts=counts
+        #c_net=C_n-t_nC_bg/t_bg
+        self.counts=counts-(self.end-self.start)*bgCounts/bgTime
+        #calculates std dev
+        self.sigma=math.sqrt(float(counts+bgCounts*((self.start-self.end)/bgTime)**2)) 
     def __repr__(self):
         return self.__str__()
     def __str__(self):
@@ -162,7 +165,7 @@ class count():
     @return touple (counts, sigma, exponential term)
     '''
     def getCountContribs(self,endAct,decayConst):
-        sigma=math.sqrt(float(self.counts))
+        #print("Counts: "+str(self.counts)+" Start: "+str(self.start-endAct))
         decay=math.exp(-decayConst*(self.start-endAct))
         decay=decay-math.exp(-decayConst*(self.end-endAct))
-        return (self.counts, sigma, decay)
+        return (self.counts, self.sigma, decay)

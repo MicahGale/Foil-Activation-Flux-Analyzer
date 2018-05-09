@@ -22,7 +22,14 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE 
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 '''
+'''
+TODO beautify graph
+TODO create output table
+TODO factor in positions in cm
+TODO add more comments
+TODO update uncertaintity propogation
 
+'''
 import xlrd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -70,6 +77,8 @@ class foilExper():
         startCol=foilExper.findColumn(headers,'Count Start')
         endCol=foilExper.findColumn(headers,  'Count End')
         countCol=foilExper.findColumn(headers, 'Counts')
+        bgCol=foilExper.findColumn(headers,'Background')
+        bgTimeCol=foilExper.findColumn(headers,'BG_TIME')
         
         end=sheet.nrows
 
@@ -77,7 +86,8 @@ class foilExper():
         for i in range(1,end):
             if( sheet.cell(i,foilCol).value!=''): #if an actual data row
                 buffer=count(sheet.cell(i,startCol).value,sheet.cell(i,endCol).value,
-                        sheet.cell(i,countCol).value)
+                        sheet.cell(i,countCol).value,sheet.cell(i,bgCol).value,
+                        sheet.cell(i,bgTimeCol).value)
                 #add the counts to the appropriate foil
                 self.foil[sheet.cell(i,foilCol).value].addCount(buffer)
 
@@ -211,4 +221,3 @@ test=foilExper('fullLoad.xlsx')
 test.parse()
 #print(test.positions[1][8])
 #test.plotRadial(1)
-test.plotAxial(7)

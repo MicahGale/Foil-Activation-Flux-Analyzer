@@ -30,6 +30,7 @@ TODO add more comments
 TODO update excel template
 '''
 import xlrd
+import csv
 import matplotlib.pyplot as plt
 import numpy as np
 from  natAbund import *
@@ -207,6 +208,25 @@ class foilExper():
         ax.set_yscale('log')
         ax.set_xscale('log')
         plt.show()
+
+    def writeTable(self,fileName):
+        # open file for writing
+        with open(fileName, 'w') as file:
+            dumper=csv.writer(file)
+            dumper.writerow(['Layer','X','Y','Z','counts','$I_0$','Reaction Rate'
+                ,'Error','Relative Error'])
+
+            for key, layer in enumerate(self.positions): #iterate over layers
+                if(layer!={}):
+                    for key2,pos in layer.items(): #iterate over all positions
+                        X=pos.X
+                        Y=pos.Y
+                        Z=pos.Z
+                        counts=pos.getCounts()
+                        I0=pos.calcN0()
+                        rx=pos.calcSpecRxRate(self.start)
+                        if(counts>0):
+                            dumper.writerow([key,X,Y,Z,counts,I0[0],rx[0],rx[1],rx[1]/rx[0]])
     '''
     Looks through the header row provided to find the desired column number
 
@@ -226,6 +246,7 @@ class foilExper():
 test=foilExper('fullLoad.xlsx')
 test.parse()
 #test.plotRadial(5)
-test.plotAxial(7)
+test.writeTable('test.csv')
+#test.plotAxial(7)
 #print(test.positions[1][8])
 #test.plotRadial(1)

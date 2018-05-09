@@ -74,6 +74,12 @@ class position():
             sigmaAcum=sigmaAcum+ret[1]**2
 
         return (rx,math.sqrt(sigmaAcum))
+    def getCounts(self):
+        sum=0
+        for foil in self.foil:
+            sum=sum+foil.getCounts()
+        return sum
+
     def __repr__(self):
         return self.__str__()
 
@@ -144,6 +150,12 @@ class foil():
             sigma=0
 
         return (activity,sigma)
+    
+    def getCounts(self):
+        sum=0
+        for count in self.counts:
+            sum=sum+count.counts
+        return sum
     
     def __repr__(self):
         return self.__str__()

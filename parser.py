@@ -160,18 +160,19 @@ class foilExper():
 
         for  key, val in row.items(): #iterate over the things
             pos[pointer]=key
-            ret=val.calcRelFlux(self.start)
+            #ret=val.calcRelFlux(self.start)
+            ret=val.calcSpecRxRate(self.start)
       #      ret=val.calcN0() #get the activity term
       #      N0[pointer]=ret[0] #get N0
             flux[pointer]=ret[0]
             sigma[pointer]=ret[1]
             pointer=pointer+1
         #plot it!
-        biggest=max(flux)
-        for i in range(0,flux.size):
-            flux[i]=flux[i]/biggest
-            sigma[i]=sigma[i]/biggest
-        plt.errorbar(pos,flux,yerr=sigma, fmt='o')
+       # biggest=max(flux)
+       # for i in range(0,flux.size):
+       #     flux[i]=flux[i]/biggest
+        #    sigma[i]=sigma[i]/biggest
+        plt.errorbar(pos,flux,yerr=sigma, fmt='x')
         plt.show()
 
     def plotAxial(self, position):
@@ -188,16 +189,16 @@ class foilExper():
         for  key, val in enumerate(self.positions): #iterate over the things
             if(val!={}):
                 pos[pointer]=key
-                ret=val[position].calcRelFlux(self.start)
+                ret=val[position].calcSpecRxRate(self.start)
                 flux[pointer]=ret[0]
                 sigma[pointer]=ret[1]
                 pointer=pointer+1
         #plot it!
-        biggest=max(flux)
-        for i in range(0,flux.size):
-            flux[i]=flux[i]/biggest
-            sigma[i]=sigma[i]/biggest
-        plt.errorbar(pos,flux,yerr=sigma, fmt='o')
+        #biggest=max(flux)
+        #for i in range(0,flux.size):
+        #    flux[i]=flux[i]/biggest
+       #     sigma[i]=sigma[i]/biggest
+        plt.errorbar(pos,flux,yerr=sigma, fmt='x')
         #ax.set_yscale('log')
         ax.set_xscale('log')
         plt.show()
@@ -219,5 +220,7 @@ class foilExper():
 
 test=foilExper('fullLoad.xlsx')
 test.parse()
+test.plotRadial(5)
+test.plotAxial(7)
 #print(test.positions[1][8])
 #test.plotRadial(1)

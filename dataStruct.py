@@ -61,7 +61,16 @@ class position():
             sigmaAcum=sigmaAcum+ret[1]**2  #add std dev in quadrature
 
         return (flux, math.sqrt(sigmaAcum)) #return tuple of value and std dev
+    def calcSpecRxRate(self,start):
+        rx=0
+        sigmaAcum=0
 
+        for foil in self.foil:
+            ret=foil.calcSpecRxRate(start)
+            rx=rx+ret[0]
+            sigmaAcum=sigmaAcum+ret[1]**2
+
+        return (rx,math.sqrt(sigmaAcum))
     def __repr__(self):
         return self.__str__()
 
@@ -93,6 +102,13 @@ class foil():
     def addCount(self,count):
         self.counts.append(count) #adds it to the array of counts
 
+    def calcSpecRxRate(self,start):
+        N0=self.calcN0() #gets quasi initial activity
+        multiplier=self.decayConst/(self.mass*(1-math.exp(-self.decayConst*(self.end-start))))
+        rx=N0[0]*multiplier
+        sigma=N0[1]*multiplier
+
+        return (rx,sigma)
     def calcRelFlux(self,start):
         N0=self.calcN0() #calcs the initial foil activity
         #also loads up my hacky decay constants
@@ -116,9 +132,10 @@ class foil():
             ret=counter.getCountContribs(self.end,self.decayConst)           
             counts=counts+ret[0]
             denominator=denominator+ret[2]
+            sigma=sigma+(ret[1]/ret[2])**2
         if(counts>0):
             activity=(counts)/denominator #[Bq]
-            sigma=(math.sqrt(counts))/denominator
+            sigma=math.sqrt(sigma)
         else:            #if no counts were taken say it was 0
             activity=0
             sigma=0

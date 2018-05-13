@@ -28,13 +28,16 @@ TODO create output table
 TODO factor in positions in cm
 TODO add more comments
 TODO update excel template
+TODO add data type checks
 '''
 import xlrd
 import csv
 import matplotlib.pyplot as plt
 import numpy as np
-from  natAbund import *
-from dataStruct import *
+#from  natAbund import *
+from dataStruct import position, foil, count
+
+
 class foilExper():
     '''
     A class for parsing foil activation excel files
@@ -42,6 +45,7 @@ class foilExper():
     def __init__(self, Name):
        self.book=xlrd.open_workbook(filename=Name)
        self.foil=''
+       self.parse()
     
     def parseFoils(self):
         if (self.foil==''):  #if foilMass isn't set populate it
@@ -151,34 +155,47 @@ class foilExper():
         self.parsePosition()
         self.parseStart()
 
+    '''
+    Plots the radial specific reaction rate for a given level
 
-    def plotRadial(self, level):
-        plt.figure()
+
+    @param level the level at which to do the radial traverse
+    @param ax   the subplot object. This allows you to combine plots on a
+    figuure
+    @param font the font specification for the axis labels
+    <https://matplotlib.org/api/matplotlib_configuration_api.html#matplotlib.rc>
+    '''
+    def plotRadial(self, level,ax,font={'famiy':'normal',
+            'weight':'normal'
+                'size' :18}):
+        fig=plt.figure()
+        ax=fig.add_subplot(1,1,1) #adds control of plot
 
         row=self.positions[level] #pull out underlying dict
         size=len(row)
         pos=np.zeros(size)
-      #  N0=np.zeros(size)
         flux=np.zeros(size)
         sigma=np.zeros(size)
         
         pointer=0
 
         for  key, val in row.items(): #iterate over the things
-            pos[pointer]=val.X
-            #ret=val.calcRelFlux(self.start)
-            ret=val.calcSpecRxRate(self.start)
-      #      ret=val.calcN0() #get the activity term
-      #      N0[pointer]=ret[0] #get N0
-            flux[pointer]=ret[0]
-            sigma[pointer]=ret[1]
-            pointer=pointer+1
+            try: #catches exception for unitialized object
+                if(val.getCounts()>0): #tests that there is actual data aswell
+                    pos[pointer]=val.X
+                    ret=val.calcSpecRxRate(self.start)
+                    flux[pointer]=ret[0]
+                    sigma[pointer]=ret[1]
+                    pointer=pointer+1
+            except NameError: #if uninit have no data and don't care
+                pass 
+        
         #plot it!
-       # biggest=max(flux)
-       # for i in range(0,flux.size):
-       #     flux[i]=flux[i]/biggest
-        #    sigma[i]=sigma[i]/biggest
-        plt.errorbar(pos,flux,yerr=sigma, fmt='x')
+        ax.errorbar(pos,flux,yerr=sigma, fmt='x') 
+        #add labels
+        ax.set_xlabel("Position on X[cm]")
+        ax.set_ylabel("Specific Reaction Rate \n($\\phi\\Sigma_c/\\rho$)[$s^{-1}g^{-1}]$")
+        plt.rc('font',**font) #loads font spec
         plt.show()
 
     def plotAxial(self, position):
@@ -245,7 +262,7 @@ class foilExper():
 
 test=foilExper('fullLoad.xlsx')
 test.parse()
-#test.plotRadial(5)
+test.plotRadial(5)
 test.writeTable('test.csv')
 #test.plotAxial(7)
 #print(test.positions[1][8])

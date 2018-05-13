@@ -111,14 +111,31 @@ class foil():
 
     def addCount(self,count):
         self.counts.append(count) #adds it to the array of counts
+    '''
+    Calculates the specific reaction rate [s^-1g^-1](\phi\Sigma_c/ \rho)
 
-    def calcSpecRxRate(self,start):
+    @param startAct- the starting time of the foil activation in seconds.
+                    Not the time of the start of counting!
+
+    '''
+    def calcSpecRxRate(self,startAct):
         N0=self.calcN0() #gets quasi initial activity
-        multiplier=self.decayConst/(self.mass*(1-math.exp(-self.decayConst*(self.end-start))))
+        #must init deccayConst in calcN0
+        #lambda/(m*(1-e^(-lambda t))
+        #t is the total time in seconds of the foil activation
+        divider=(self.mass*(1-math.exp(-self.decayConst*(self.end-startAct))))
+        multiplier=self.decayConst/divider
         rx=N0[0]*multiplier
         sigma=N0[1]*multiplier
 
         return (rx,sigma)
+    '''
+    Calculates a relative flux term that can be divided by other relative
+    fluxes to actually get relative fluxes. 
+
+    Deprecated- do not use!
+
+    '''
     def calcRelFlux(self,start):
         N0=self.calcN0() #calcs the initial foil activity
         #also loads up my hacky decay constants
@@ -132,18 +149,20 @@ class foil():
     def calcN0(self):
         #TODO switch from hardcoded half-lives
         self.halfLife=3257.4 #[s] half life for Indium 116-m from NuDat 2.7
-        self.decayConst=-math.log(0.5)/self.halfLife #calculate the decay constant
+        self.decayConst=math.log(2)/self.halfLife #calculate the decay constant
 
         counts=0
         denominator=0
         sigma=0
 
-        for counter in self.counts:
-            ret=counter.getCountContribs(self.end,self.decayConst)           
+        for counter in self.counts: #iterate overr all counting sessions
+            #retrieves counting cotribution for counting session
+            ret=counter.getCountContribs(self.end,self.decayConst)      
             counts=counts+ret[0]
             denominator=denominator+ret[2]
             sigma=sigma+(ret[1]/ret[2])**2
         if(counts>0):
+            #completes the division of the accumulated sums
             activity=(counts)/denominator #[Bq]
             sigma=math.sqrt(sigma)
         else:            #if no counts were taken say it was 0
@@ -217,7 +236,9 @@ class count():
     @return touple (counts, sigma, exponential term)
     '''
     def getCountContribs(self,endAct,decayConst):
-        #print("Counts: "+str(self.counts)+" Start: "+str(self.start-endAct))
+        
+        #calculates:
+        #(e^(-L*t_1)-e^(-Lt_2))
         decay=math.exp(-decayConst*(self.start-endAct))
         decay=decay-math.exp(-decayConst*(self.end-endAct))
         return (self.counts, self.sigma, decay)

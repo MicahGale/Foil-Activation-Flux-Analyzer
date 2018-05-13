@@ -208,14 +208,29 @@ class foilExper():
         if(save):
             plt.savefig(fileName+'.pdf')
     '''
-
+    Plots the axial specific reaction rate for a given position
+  
+    @param level the level at which to do the radial traverse
+    @param fileName the fileName to which to save the pdf do not include
+    extension
+    @param ax   the subplot object. This allows you to combine plots on a
+        figure
+    @param font the font specification for the axis labels
+    <https://matplotlib.org/api/matplotlib_configuration_api.html#matplotlib.rc>
+    @param save If true the plot will be saved to FileName
+    @param xAxisLabel If true will add a X axis Label
+    @param yAxisLabel if True will add y axis label. Usefule for making a
+    common label
+    @param If true will create a log-log plot else it will be lin-lin
+    @param title the title for the plot. Useful for combined plots
     '''
-    def plotAxial(self, position):
-        fig=plt.figure()
-        ax=fig.add_subplot(1,1,1)
-        size=len(self.positions)
+    def plotAxial(self, position, ax,fileName=None, font={'family':'normal',
+             'weight':'normal',
+                 'size' :18},save=True,xAxisLabel=True,
+                 yAxisLabel=True,logLog=False, title=''):
+        
+        size=len(self.positions)-1
         pos=np.zeros(size)
-      #  N0=np.zeros(size)
         flux=np.zeros(size)
         sigma=np.zeros(size)
         
@@ -223,21 +238,37 @@ class foilExper():
 
         for  key, val in enumerate(self.positions): #iterate over the things
             if(val!={}):
-                pos[pointer]=val[position].Z
-                ret=val[position].calcSpecRxRate(self.start)
-                flux[pointer]=ret[0]
-                sigma[pointer]=ret[1]
-                pointer=pointer+1
+                if(val[position].getCounts()>0):
+                    pos[pointer]=val[position].Z
+                    ret=val[position].calcSpecRxRate(self.start)
+                    flux[pointer]=ret[0]
+               	    sigma[pointer]=ret[1]
+                    pointer=pointer+1
         #plot it!
-        #biggest=max(flux)
-        #for i in range(0,flux.size):
-        #    flux[i]=flux[i]/biggest
-       #     sigma[i]=sigma[i]/biggest
-        plt.errorbar(pos,flux,yerr=sigma, fmt='x')
-        ax.set_yscale('log')
-        ax.set_xscale('log')
-        plt.show()
+        plt.errorbar(pos,flux,yerr=sigma,fmt='s',color='k',capsize=5)
+        
+        #turn on or off log-log
+        if(logLog):
+            ax.set_yscale('log')
+            ax.set_xscale('log')
+        #add x-label
+        if(xAxisLabel):
+            ax.set_xlabel('Position in z [cm]',**font)
 
+        #add the y-label
+        if(yAxisLabel):
+            ax.set_ylabel("Uncorrect Specific Reaction Rate\n($\\eta\\phi\\Sigma_c/\\rho$)[$s^{-1}g^{-1}]$",**font)
+        
+        ax.set_title(title,**font)
+        if(save):
+            plt.savefig(fileName+".pdf")
+    
+  
+  
+    '''
+    Creates a csv table for viewing raw interpreted data
+
+    '''
     def writeTable(self,fileName):
         # open file for writing
         with open(fileName, 'w') as file:

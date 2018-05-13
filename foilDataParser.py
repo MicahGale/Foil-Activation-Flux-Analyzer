@@ -35,7 +35,7 @@ import csv
 import matplotlib.pyplot as plt
 import numpy as np
 #from  natAbund import *
-from dataStruct import position, foil, count
+from dataStruct import position, foil, count, DAY_TO_SEC
 
 
 class foilExper():
@@ -160,17 +160,22 @@ class foilExper():
 
 
     @param level the level at which to do the radial traverse
+    @param fileName the fileName to which to save the pdf do not include
+    extension
     @param ax   the subplot object. This allows you to combine plots on a
-    figuure
+        figure
     @param font the font specification for the axis labels
     <https://matplotlib.org/api/matplotlib_configuration_api.html#matplotlib.rc>
+    @param save If true the plot will be saved to FileName
+    @param xAxisLabel If true will add a X axis Label
+    @param yAxisLabel if True will add y axis label. Usefule for making a
+    common label
+    @param title the title for the plot. Useful for combined plots
     '''
-    def plotRadial(self, level,ax,font={'famiy':'normal',
-            'weight':'normal'
-                'size' :18}):
-        fig=plt.figure()
-        ax=fig.add_subplot(1,1,1) #adds control of plot
-
+    def plotRadial(self, level,ax,fileName=None, font={'family':'normal',
+            'weight':'normal',
+                'size' :18},save=True,xAxisLabel=True, yAxisLabel=True,title=''):
+        
         row=self.positions[level] #pull out underlying dict
         size=len(row)
         pos=np.zeros(size)
@@ -191,13 +196,20 @@ class foilExper():
                 pass 
         
         #plot it!
-        ax.errorbar(pos,flux,yerr=sigma, fmt='x') 
+        ax.errorbar(pos,flux,yerr=sigma, fmt='s',color='k',capsize=5) 
         #add labels
-        ax.set_xlabel("Position on X[cm]")
-        ax.set_ylabel("Specific Reaction Rate \n($\\phi\\Sigma_c/\\rho$)[$s^{-1}g^{-1}]$")
-        plt.rc('font',**font) #loads font spec
-        plt.show()
+        if(xAxisLabel):
+            ax.set_xlabel("Position on X[cm]",**font)
+       
+        if(yAxisLabel): #sets the yaxis
+            ax.set_ylabel("Uncorrect Specific Reaction Rate\n($\\eta\\phi\\Sigma_c/\\rho$)[$s^{-1}g^{-1}]$", **font)
+        plt.xlim((-105,105)) #statically sets the x-axis. Change for non-GEP
+        ax.set_title(title,**font) #sets the title
+        if(save):
+            plt.savefig(fileName+'.pdf')
+    '''
 
+    '''
     def plotAxial(self, position):
         fig=plt.figure()
         ax=fig.add_subplot(1,1,1)
@@ -260,10 +272,3 @@ class foilExper():
            i=i+1
        return -1
 
-test=foilExper('fullLoad.xlsx')
-test.parse()
-test.plotRadial(5)
-test.writeTable('test.csv')
-#test.plotAxial(7)
-#print(test.positions[1][8])
-#test.plotRadial(1)

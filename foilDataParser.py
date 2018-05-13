@@ -202,7 +202,7 @@ class foilExper():
             ax.set_xlabel("Position on X[cm]",**font)
        
         if(yAxisLabel): #sets the yaxis
-            ax.set_ylabel("Uncorrect Specific Reaction Rate\n($\\eta\\phi\\Sigma_c/\\rho$)[$s^{-1}g^{-1}]$", **font)
+            ax.set_ylabel("Uncorrected Specific Reaction Rate\n($\\eta\\phi\\Sigma_c/\\rho$)[$s^{-1}g^{-1}]$", **font)
         plt.xlim((-105,105)) #statically sets the x-axis. Change for non-GEP
         ax.set_title(title,**font) #sets the title
         if(save):
@@ -245,8 +245,7 @@ class foilExper():
                	    sigma[pointer]=ret[1]
                     pointer=pointer+1
         #plot it!
-        plt.errorbar(pos,flux,yerr=sigma,fmt='s',color='k',capsize=5)
-        
+        ax.errorbar(pos,flux,yerr=sigma,fmt='s',color='k',capsize=5) 
         #turn on or off log-log
         if(logLog):
             ax.set_yscale('log')
@@ -257,7 +256,7 @@ class foilExper():
 
         #add the y-label
         if(yAxisLabel):
-            ax.set_ylabel("Uncorrect Specific Reaction Rate\n($\\eta\\phi\\Sigma_c/\\rho$)[$s^{-1}g^{-1}]$",**font)
+            ax.set_ylabel("Uncorrected Specific Reaction Rate\n($\\eta\\phi\\Sigma_c/\\rho$)[$s^{-1}g^{-1}]$",**font)
         
         ax.set_title(title,**font)
         if(save):

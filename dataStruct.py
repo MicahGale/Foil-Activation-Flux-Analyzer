@@ -27,6 +27,7 @@ import math
 
 #"constant" for converting days to seconds
 DAY_TO_SEC=86400
+MIN_TO_SEC=60 #const for minutes to seconds
 '''
 Represents a single location in the pile. May contain multiple foils.
 
@@ -172,15 +173,34 @@ class foil():
 Represents a single counting session for a single foil.
 '''
 class count():
+    '''
+    Creates a new count object representing one contiguous counting session.
 
+    @param start- the start time is days since some epoch. (Excel default)
+                    Do not convert to seconds! Will be done internally
+    @param end- the end time of the count. Same formatting as above
+    @pararm counts - the number of raw counts
+    @paramm bgCounts- number of background counts
+    @param  bgTime   -length of background counting in minutes. Will convert
+                     to seconds
+    '''
     def __init__(self,start,end,counts,bgCounts,bgTime):
         global DAY_TO_SEC
+        global MIN_TO_SEC
+
         self.start=start*DAY_TO_SEC
         self.end=end*DAY_TO_SEC
-        #c_net=C_n-t_nC_bg/t_bg
+        bgTime= bgTime*MIN_TO_SEC  #converrts bg time to seconds
+
+        #C_net=C_n-c_bg*t_cn/t_bg
         self.counts=counts-(self.end-self.start)*bgCounts/bgTime
         #calculates std dev
+        #s_net=sqrt(s_n^2+(s_bg*t_cn/t_bg)^2)
+        #
+        #this simplifies to:
+        #s_net=sqrt(C_n+C_bg*(t_cn/t_bg)^2)
         self.sigma=math.sqrt(float(counts+bgCounts*((self.start-self.end)/bgTime)**2)) 
+        
     def __repr__(self):
         return self.__str__()
     def __str__(self):

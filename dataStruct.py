@@ -65,15 +65,23 @@ class position():
             sigmaAcum=sigmaAcum+ret[1]**2  #add std dev in quadrature
 
         return (flux, math.sqrt(sigmaAcum)) #return tuple of value and std dev
+    
+    '''
+    Calculates the specific reaction rate for this position. 
+
+    This should just be a pass through for a single foil position, but can
+    handle multiple foils if neeeded. See foil.calcSpecRxRate() for math
+
+    @param startAct- the start time of the foil activation in seconds.
+    '''
     def calcSpecRxRate(self,start):
         rx=0
         sigmaAcum=0
 
-        for foil in self.foil:
+        for foil in self.foil: #iterate over all foils
             ret=foil.calcSpecRxRate(start)
             rx=rx+ret[0]
             sigmaAcum=sigmaAcum+ret[1]**2
-
         return (rx,math.sqrt(sigmaAcum))
     def getCounts(self):
         sum=0
@@ -111,6 +119,7 @@ class foil():
 
     def addCount(self,count):
         self.counts.append(count) #adds it to the array of counts
+    
     '''
     Calculates the specific reaction rate [s^-1g^-1](\phi\Sigma_c/ \rho)
 

@@ -129,23 +129,16 @@ class foil():
         sigma=N0[1]*multiplier
 
         return (rx,sigma)
+    
     '''
-    Calculates a relative flux term that can be divided by other relative
-    fluxes to actually get relative fluxes. 
+    Calculates the Initial activity of the activated foil. 
 
-    Deprecated- do not use!
+    this isn't a true activity as the detector efficiency isn't factored in.
+    Finds \eta N_0. Only gives meaningful data is the exact same detector
+    setup is used for all foils.
+
 
     '''
-    def calcRelFlux(self,start):
-        N0=self.calcN0() #calcs the initial foil activity
-        #also loads up my hacky decay constants
-        
-        multiplier=(1-math.exp(-self.decayConst*(self.end-start)))/self.mass
-        flux=N0[0]*multiplier
-        sigma=N0[1]*multiplier #propogate counting uncertainty 
-
-        return (flux, sigma)
-
     def calcN0(self):
         #TODO switch from hardcoded half-lives
         self.halfLife=3257.4 #[s] half life for Indium 116-m from NuDat 2.7

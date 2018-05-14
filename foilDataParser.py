@@ -36,7 +36,8 @@ import xlrd
 import csv
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy import stats #for the linear regression
+from scipy import stats #for the linear regressioni
+from scipy.optimize import least_squares #regression
 import math
 #from  natAbund import *
 from dataStruct import position, foil, count, DAY_TO_SEC
@@ -306,6 +307,7 @@ class foilExper():
            i=i+1
        return -1
 
+
 class subCritPile():
 
     '''
@@ -321,6 +323,17 @@ class subCritPile():
         self.a=a
         self.b=b
         self.c=c
+
+    '''
+    Goal function for sinh fit
+    
+    @param g the paramaters [0]A [1]gamma
+    y=Asinh(gamma(c-x))
+    @param x xvalue
+    @param y actual y value of data
+    '''
+    def goalSinh(self,g,x,y):
+        return g[0]*np.sinh(g[1]*(self.c-x))-y
 
     '''
     Calculates \gamma_{1,1}
@@ -339,20 +352,31 @@ class subCritPile():
         for val in self.data.positions:
             if(val!={}):
                 if(val[position].getCounts()>0):# test that it's good data
-                    pos[pointer]=self.c-val[position].Z
+                    pos[pointer]=val[position].Z
                     ret=val[position].calcSpecRxRate(self.data.start)
 
-                    flux[pointer]=math.log(ret[0]) #takes the log of data
+                    flux[pointer]=ret[0] #takes the log of data
                     #doing linear regress on this gives gamma
                     sigma[pointer]=ret[1]
                     pointer=pointer+1
                     
-        self.gamma,self.Intercept,rval,pval,self.gamStdErr=stats.linregress(pos,flux)
+        #self.gamma,self.Intercept,rval,pval,self.gamStdErr=stats.linregress(pos,flux)
+        x0=np.ones(2)
+        x0=[-84, 0.01]
+        fit= least_squares(self.goalSinh, x0,args=(pos,flux))
         
+        self.gamma=fit.x
 
     def plotAxialFunc(self,position,ax,printGamma=True):
         self.calcFundGamma(position) #calculate the fundamental mode
         x=np.linspace(0,self.c,100)
         if(printGamma):
-            ax.text(200,70,"$\\gamma_{1,1}$=%.5f" %self.gamma,fontsize=15) 
-        ax.plot(x,math.exp(self.Intercept)*np.exp(self.gamma*(self.c-x)))
+            ax.text(200,70,"$\\gamma_{1,1}$=%.5f" %self.gamma[1],fontsize=15)
+        line=self.gamma[0]*np.sinh(self.gamma[1]*(self.c-x))
+        ax.plot(x,line,color='k')
+    
+    def calcGeoBuckle(self,position):
+        self.calcFundGamma(position)
+        Bm2=(math.pi/self.a)**2+(math.pi/self.b)**2-self.gamma[1]**2
+        print(Bm2)
+        print(np.sqrt(Bm2))

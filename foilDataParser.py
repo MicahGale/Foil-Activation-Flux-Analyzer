@@ -30,10 +30,14 @@ TODO add more comments
 TODO update excel template
 TODO add data type checks
 '''
+
+
 import xlrd
 import csv
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy import stats #for the linear regression
+import math
 #from  natAbund import *
 from dataStruct import position, foil, count, DAY_TO_SEC
 
@@ -249,7 +253,7 @@ class foilExper():
         #turn on or off log-log
         if(logLog):
             ax.set_yscale('log')
-            ax.set_xscale('log')
+        #    ax.set_xscale('log')
         #add x-label
         if(xAxisLabel):
             ax.set_xlabel('Position in z [cm]',**font)
@@ -302,3 +306,53 @@ class foilExper():
            i=i+1
        return -1
 
+class subCritPile():
+
+    '''
+    Creates an object which isn meant to analyze foil data for a sub-crit pile
+
+    @param fileName the name of the xlsx file which contains the foil counts
+    @param a- the width of the pile in X in cm
+    @param b- the depth of the pile in Y in cm
+    @param c- the height of the pile in Z above the source plane in cm
+    '''
+    def __init__(self,fileName,a,b,c):
+        self.data=foilExper(fileName) #loads the data in
+        self.a=a
+        self.b=b
+        self.c=c
+
+    '''
+    Calculates \gamma_{1,1}
+
+    @param position the radial position to use
+    '''
+    def calcFundGamma(self,position):
+        
+        size=len(self.data.positions)-1
+        pos=np.zeros(size)
+        flux=np.zeros(size)
+        sigma=np.zeros(size)
+
+        pointer=0
+
+        for val in self.data.positions:
+            if(val!={}):
+                if(val[position].getCounts()>0):# test that it's good data
+                    pos[pointer]=self.c-val[position].Z
+                    ret=val[position].calcSpecRxRate(self.data.start)
+
+                    flux[pointer]=math.log(ret[0]) #takes the log of data
+                    #doing linear regress on this gives gamma
+                    sigma[pointer]=ret[1]
+                    pointer=pointer+1
+                    
+        self.gamma,self.Intercept,rval,pval,self.gamStdErr=stats.linregress(pos,flux)
+        
+
+    def plotAxialFunc(self,position,ax,printGamma=True):
+        self.calcFundGamma(position) #calculate the fundamental mode
+        x=np.linspace(0,self.c,100)
+        if(printGamma):
+            ax.text(200,70,"$\\gamma_{1,1}$=%.5f" %self.gamma,fontsize=15) 
+        ax.plot(x,math.exp(self.Intercept)*np.exp(self.gamma*(self.c-x)))

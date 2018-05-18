@@ -23,8 +23,6 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 '''
 '''
-TODO beautify graph
-TODO add more comments
 TODO update excel template
 TODO add data type checks
 '''
@@ -40,16 +38,23 @@ import math
 #from  natAbund import *
 from dataStruct import position, foil, count, DAY_TO_SEC
 
-
+'''
+Parser object that just parses all of the positions with foils 
+and counts.
+'''
 class foilExper():
     '''
-    A class for parsing foil activation excel files
+    A class for parsing foil activation excel filesi
+    @param Name- the filename of the .xlsx file
     '''
     def __init__(self, Name):
        self.book=xlrd.open_workbook(filename=Name)
        self.foil=''
        self.parse()
     
+    '''
+    Discovers all foils and creates an internal array of foils
+    '''
     def parseFoils(self):
         if (self.foil==''):  #if foilMass isn't set populate it
             #pulls out the excel sheet with the foil properties
@@ -97,7 +102,9 @@ class foilExper():
                         sheet.cell(i,bgTimeCol).value)
                 #add the counts to the appropriate foil
                 self.foil[sheet.cell(i,foilCol).value].addCount(buffer)
-
+    '''
+    Parses the position data. Adds foils to appropriate positions.
+    '''
     def parsePosition(self):
         sheet=self.book.sheet_by_name('PositionData')
         header=sheet.row(0)
@@ -151,7 +158,14 @@ class foilExper():
         row=foilExper.findColumn(header,'Source Insertion')
         self.start=sheet.cell(row,col).value*DAY_TO_SEC  #caches the
         #experiment start time in seconds
-
+    '''
+    Automatically parse all data
+    Runs:
+    parseFoils()
+    parseCounts()
+    parsePosition()
+    parseStart()
+    '''
     def parse(self):
         self.parseFoils()
         self.parseCounts()
@@ -305,7 +319,8 @@ class foilExper():
   
     '''
     Creates a csv table for viewing raw interpreted data
-
+    
+    @param fileName the fileName to dump the data to
     '''
     def writeTable(self,fileName):
         # open file for writing
@@ -382,6 +397,7 @@ class subCritPile():
     def goalCos(self,g,x,y):
         return g[0]*np.cos(math.pi*x/self.a)-y
 
+
     '''
     Calculates \gamma_{1,1} stores to self.gamma
     
@@ -398,12 +414,24 @@ class subCritPile():
 
         pointer=0
                     
-        #self.gamma,self.Intercept,rval,pval,self.gamStdErr=stats.linregress(pos,flux)
         x0=np.ones(2)
         x0=[10, 0.02]
-        fit= least_squares(self.goalSinh, x0, args=(pos[2:],flux[2:]))
-        print(fit.x) 
+        fit= least_squares(self.goalSinh, x0, args=(pos[2:],flux[2:])) 
         self.gamma=fit.x
+
+        fitFunc=fit.x[0]*np.sinh(fit.x[1]*(self.c-pos))
+        
+        ####Calculates R^2
+        yBar=np.mean(flux) #calculates mean y
+        SST=0 #total sum squares
+        SSRes=0 #residual sum of squares
+
+        for i in range(0,pos.size): #iterate over all elements
+            SST+=(flux[i]-yBar)**2
+            SSRes+=(flux[i]-self.goalSinh(fit.x,pos[i],0))**2 #sum residuals
+ 
+        self.R2=1-SSRes/SST#saves r^2
+
     
     '''
     Plots the axially fitted function on the given subplot
@@ -416,10 +444,12 @@ class subCritPile():
     def plotAxialFunc(self,ax,printGamma=True):
         x=np.linspace(0,self.c,100)
         if(printGamma):
-            ax.text(200,30,"$\\gamma_{1,1}$=%.5f" %self.gamma[1],fontsize=15)
+            title="$\\gamma_{1,1}$=%.5f\n$R^2$=%.3f" %(self.gamma[1],self.R2)
+            ax.text(200,30,title, fontsize=15)
         
         line=self.gamma[0]*np.sinh(self.gamma[1]*(self.c-x))
         ax.plot(x,line,color='k')
+
     '''
     Calculates the Material Buckling, and the critical Reactor size.
 

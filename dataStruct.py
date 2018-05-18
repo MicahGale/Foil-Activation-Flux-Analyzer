@@ -33,16 +33,29 @@ Represents a single location in the pile. May contain multiple foils.
 
 '''
 class position():
-    
+    '''
+    @param foil a single foil object at this postion
+    @param X position in x in cm
+    @param y ""
+    @param z ""
+    '''
     def __init__(self,foil,X,Y,Z):
         self.foil=[foil]
         self.X=X
         self.Y=Y
         self.Z=Z
+    '''
+    Appends another foil to list of foils at position
 
+    @param the new foil object
+    '''
     def addFoil(self,foil):
         self.foil.append(foil)
-
+    
+    '''
+    Calculates the total initial activity here.
+    Sums over all foils
+    '''
     def calcN0(self):
 
         N0=0
@@ -55,17 +68,6 @@ class position():
 
         return (N0, math.sqrt(sigmaAcum)) #return tuple of value and std dev
     
-    def calcRelFlux(self,start):
-        flux=0
-        sigmaAcum=0
-
-        for foil in self.foil:
-            ret=foil.calcRelFlux(start)
-            flux=flux+ret[0]    #accumulates the total
-            sigmaAcum=sigmaAcum+ret[1]**2  #add std dev in quadrature
-
-        return (flux, math.sqrt(sigmaAcum)) #return tuple of value and std dev
-    
     '''
     Calculates the specific reaction rate for this position. 
 
@@ -73,6 +75,7 @@ class position():
     handle multiple foils if neeeded. See foil.calcSpecRxRate() for math
 
     @param startAct- the start time of the foil activation in seconds.
+    @return (rx,sigma) rx-the specific reaction rate
     '''
     def calcSpecRxRate(self,start):
         rx=0
@@ -83,6 +86,10 @@ class position():
             rx=rx+ret[0]
             sigmaAcum=sigmaAcum+ret[1]**2
         return (rx,math.sqrt(sigmaAcum))
+    '''
+    Just gets the total number of counts at positon
+    @return total counts detected
+    ''''
     def getCounts(self):
         sum=0
         for foil in self.foil:
@@ -106,17 +113,27 @@ Represents a single foil. Holds it properties and the counts which were taken
 of it
 '''
 class foil():
-    
+    '''
+    @param mat- foil material
+    @param thick-foil thicness
+    @param mass-foil mass in g
+    '''
     def __init__(self,mat,thick,mass):
         self.mat=mat
         self.thick=thick
         self.mass=mass
         self.counts=[] #the child counts for this dohickey
    
-    #adds the end time for the foil activation
+    '''
+    Adds the end time of the foil activation.
+    @param the foil activation end time in days
+    '''
     def addEndTime(self,end):
         self.end=end*DAY_TO_SEC
-
+    '''
+    Adds a count object to the current foil
+    @param a completely initialized count object
+    '''
     def addCount(self,count):
         self.counts.append(count) #adds it to the array of counts
     
@@ -172,7 +189,10 @@ class foil():
             sigma=0
 
         return (activity,sigma)
-    
+    '''
+    Gets the total counts
+    @return the total counts detected
+    ''''
     def getCounts(self):
         sum=0
         for count in self.counts:
@@ -220,12 +240,14 @@ class count():
         #
         #this simplifies to:
         #s_net=sqrt(C_n+C_bg*(t_cn/t_bg)^2)
-        self.sigma=math.sqrt(float(counts+bgCounts*((self.start-self.end)/bgTime)**2)) 
+        self.sigma=math.sqrt(
+                float(counts+bgCounts*((self.start-self.end)/bgTime)**2)) 
         
     def __repr__(self):
         return self.__str__()
     def __str__(self):
-        return "Start: "+str(self.start)+" End: "+str(self.end)+" Counts:"+str(self.counts)
+        return "Start: "+str(self.start)+" End: "\
+                +str(self.end)+" Counts:"+str(self.counts)
 
     '''
     returns the data necessary to combine the counts to get an activity term

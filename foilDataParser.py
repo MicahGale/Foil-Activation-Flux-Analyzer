@@ -24,8 +24,6 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 '''
 '''
 TODO beautify graph
-TODO create output table
-TODO factor in positions in cm
 TODO add more comments
 TODO update excel template
 TODO add data type checks
@@ -161,6 +159,37 @@ class foilExper():
         self.parseStart()
 
     '''
+    Pulls out the radial specific reaction rate data for a layer
+
+    @param layer the layer to examine
+    @return (pos,flux,sigma) Pos=position in x data
+        flux=specific reaction rate
+        sigma=uncertainty
+    '''
+    def getRadData(self,level):
+        row=self.positions[level] #pull out underlying dict
+        size=len(row)
+        pos=np.zeros(size)
+        flux=np.zeros(size)
+        sigma=np.zeros(size)
+
+        pointer=0
+
+        for  key, val in row.items(): #iterate over the things
+            try: #catches exception for unitialized object
+                if(val.getCounts()>0): #tests that there is actual data aswell
+                    pos[pointer]=val.X
+                    ret=val.calcSpecRxRate(self.start)
+                    flux[pointer]=ret[0]
+                    sigma[pointer]=ret[1]
+                    pointer=pointer+1
+            except NameError: #if uninit have no data and don't care
+                pass
+
+        return (pos,flux,sigma)
+
+
+    '''
     Plots the radial specific reaction rate for a given level
 
 
@@ -181,25 +210,10 @@ class foilExper():
             'weight':'normal',
                 'size' :18},save=True,xAxisLabel=True, yAxisLabel=True,title=''):
         
-        row=self.positions[level] #pull out underlying dict
-        size=len(row)
-        pos=np.zeros(size)
-        flux=np.zeros(size)
-        sigma=np.zeros(size)
-        
-        pointer=0
-
-        for  key, val in row.items(): #iterate over the things
-            try: #catches exception for unitialized object
-                if(val.getCounts()>0): #tests that there is actual data aswell
-                    pos[pointer]=val.X
-                    ret=val.calcSpecRxRate(self.start)
-                    flux[pointer]=ret[0]
-                    sigma[pointer]=ret[1]
-                    pointer=pointer+1
-            except NameError: #if uninit have no data and don't care
-                pass 
-        
+        ret=self.getRadData(level)
+        pos=ret[0]
+        flux=ret[1]
+        sigma=ret[2]
         #plot it!
         ax.errorbar(pos,flux,yerr=sigma, fmt='s',color='k',capsize=5) 
         #add labels
@@ -207,11 +221,40 @@ class foilExper():
             ax.set_xlabel("Position on X[cm]",**font)
        
         if(yAxisLabel): #sets the yaxis
-            ax.set_ylabel("Uncorrected Specific Reaction Rate\n($\\eta\\phi\\Sigma_c/\\rho$)[$s^{-1}g^{-1}]$", **font)
+            ax.set_ylabel("Uncorrected Specific "\
+                    "Reaction Rate\n($\\eta\\phi\\Sigma_c/\\rho$)[$s^{-1}g^{-1}]$", **font)
         plt.xlim((-105,105)) #statically sets the x-axis. Change for non-GEP
         ax.set_title(title,**font) #sets the title
         if(save):
             plt.savefig(fileName+'.pdf')
+    
+    '''
+    Gets the axial spec. reaction rate data for a specific position.
+
+    @param position the radial position to use
+    @return (pos, flux,sigma) pos=axial position in z
+            flux=spec reaction rate
+            sigma=uncertainty
+    '''
+    def getAxialData(self,position):
+        size=len(self.positions)-1
+        pos=np.zeros(size)
+        flux=np.zeros(size)
+        sigma=np.zeros(size)
+ 
+        pointer=0
+ 
+        for  key, val in enumerate(self.positions): #iterate over the things
+            if(val!={}):
+                if(val[position].getCounts()>0):
+                    pos[pointer]=val[position].Z
+                    ret=val[position].calcSpecRxRate(self.start)
+                    flux[pointer]=ret[0]
+                    sigma[pointer]=ret[1]
+                    pointer=pointer+1
+        
+        return (pos,flux,sigma)
+
     '''
     Plots the axial specific reaction rate for a given position
   
@@ -234,21 +277,11 @@ class foilExper():
                  'size' :18},save=True,xAxisLabel=True,
                  yAxisLabel=True,logLog=False, title=''):
         
-        size=len(self.positions)-1
-        pos=np.zeros(size)
-        flux=np.zeros(size)
-        sigma=np.zeros(size)
+        ret= self.getAxialData(position) #gets axial data
+        pos=ret[0]
+        flux=ret[1]
+        sigma=ret[2]
         
-        pointer=0
-
-        for  key, val in enumerate(self.positions): #iterate over the things
-            if(val!={}):
-                if(val[position].getCounts()>0):
-                    pos[pointer]=val[position].Z
-                    ret=val[position].calcSpecRxRate(self.start)
-                    flux[pointer]=ret[0]
-               	    sigma[pointer]=ret[1]
-                    pointer=pointer+1
         #plot it!
         ax.errorbar(pos,flux,yerr=sigma,fmt='s',color='k',capsize=5) 
         #turn on or off log-log
@@ -261,7 +294,8 @@ class foilExper():
 
         #add the y-label
         if(yAxisLabel):
-            ax.set_ylabel("Uncorrected Specific Reaction Rate\n($\\eta\\phi\\Sigma_c/\\rho$)[$s^{-1}g^{-1}]$",**font)
+            ax.set_ylabel("Uncorrected Specific "\
+                    "Reaction Rate\n($\\eta\\phi\\Sigma_c/\\rho$)[$s^{-1}g^{-1}]$",**font)
         
         ax.set_title(title,**font)
         if(save):
@@ -308,6 +342,9 @@ class foilExper():
        return -1
 
 
+'''
+Represents an experimental Subcritical Pile
+'''
 class subCritPile():
 
     '''
@@ -336,47 +373,80 @@ class subCritPile():
         return g[0]*np.sinh(g[1]*(self.c-x))-y
 
     '''
-    Calculates \gamma_{1,1}
+    Goal function for cos amplitude fit
+
+    @param g- the paramters [0]A
+    @param x x-value
+    @param y y-value from data
+    '''
+    def goalCos(self,g,x,y):
+        return g[0]*np.cos(math.pi*x/self.a)-y
+
+    '''
+    Calculates \gamma_{1,1} stores to self.gamma
+    
+    gamma[0] is amplitude of mode. gamma[1] is the \gamma
 
     @param position the radial position to use
     '''
     def calcFundGamma(self,position):
         
-        size=len(self.data.positions)-1
-        pos=np.zeros(size)
-        flux=np.zeros(size)
-        sigma=np.zeros(size)
+        ret=self.data.getAxialData(position)
+
+        pos=ret[0]
+        flux=ret[1]
 
         pointer=0
-
-        for val in self.data.positions:
-            if(val!={}):
-                if(val[position].getCounts()>0):# test that it's good data
-                    pos[pointer]=val[position].Z
-                    ret=val[position].calcSpecRxRate(self.data.start)
-
-                    flux[pointer]=ret[0] #takes the log of data
-                    #doing linear regress on this gives gamma
-                    sigma[pointer]=ret[1]
-                    pointer=pointer+1
                     
         #self.gamma,self.Intercept,rval,pval,self.gamStdErr=stats.linregress(pos,flux)
         x0=np.ones(2)
-        x0=[-84, 0.01]
-        fit= least_squares(self.goalSinh, x0,args=(pos,flux))
-        
+        x0=[10, 0.02]
+        fit= least_squares(self.goalSinh, x0, args=(pos[2:],flux[2:]))
+        print(fit.x) 
         self.gamma=fit.x
+    
+    '''
+    Plots the axially fitted function on the given subplot
 
-    def plotAxialFunc(self,position,ax,printGamma=True):
-        self.calcFundGamma(position) #calculate the fundamental mode
+    Note: pulls out self.gamma must be invoked after self.calcFundGamma
+    
+    @param ax the subplot object for plotting the figure
+    @param printGamma- will print gamma value on the figure if true
+    '''
+    def plotAxialFunc(self,ax,printGamma=True):
         x=np.linspace(0,self.c,100)
         if(printGamma):
-            ax.text(200,70,"$\\gamma_{1,1}$=%.5f" %self.gamma[1],fontsize=15)
+            ax.text(200,30,"$\\gamma_{1,1}$=%.5f" %self.gamma[1],fontsize=15)
+        
         line=self.gamma[0]*np.sinh(self.gamma[1]*(self.c-x))
         ax.plot(x,line,color='k')
+    '''
+    Calculates the Material Buckling, and the critical Reactor size.
+
+    Note: uses self.gamma needs to be invoked after self.calcFundGamma.
     
+    @return (Bm2,s) Bm2=B_m^2-material buckling, s=side length of critical
+                    reactor cube
+    '''
     def calcGeoBuckle(self,position):
-        self.calcFundGamma(position)
         Bm2=(math.pi/self.a)**2+(math.pi/self.b)**2-self.gamma[1]**2
-        print(Bm2)
-        print(np.sqrt(Bm2))
+        
+        s=np.sqrt(3)*math.pi/math.sqrt(Bm2)
+
+        return(Bm2,s) 
+    
+    '''
+    Fits the fundamental cosine to the data.
+
+    @param layer -the layer to examine
+    @return the amplitude of the fundamental mode
+    '''
+    def fitFundRadial(self,layer):
+        ret=self.data.getRadData(layer) #pulls out the radial data desired
+        
+        x0=[1] #guess 1 first
+
+        fit=least_squares(self.goalCos,x0, args=(ret[0],ret[1])) #fits data
+        
+        return fit.x[0] #return the amplitude
+

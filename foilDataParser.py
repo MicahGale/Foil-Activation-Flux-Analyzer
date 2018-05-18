@@ -450,3 +450,14 @@ class subCritPile():
         
         return fit.x[0] #return the amplitude
 
+    '''
+    Plots the cosine fit on the given plot.
+
+    @param ax the given subplot to print on
+    @param A the amplitude of the cosine from the fit before
+    '''
+    def plotFundRad(self,ax,A):
+        
+        x=np.linspace(-self.a/2,self.a/2,100) #make dummy x
+        line=A*np.cos(math.pi*x/self.a) #defines the line function
+        ax.plot(x,line,color='k') #plots it

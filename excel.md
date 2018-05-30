@@ -30,3 +30,7 @@ This sheet documents where the foils are located in the pile. Every foil must ha
 * **End Activation** The time at which the activation for the foil stopped. Usually this is when the stringer is removed from the pile.
 
 * **Offset from East Face** This is the distance which the stringers jut out from the east face of the pile. Used for more precise X locations.
+
+
+### CountData
+This sheet includes the data for the counting sessions of th foils.

@@ -9,4 +9,8 @@ This was created as Part of Micah Gale's thesis. For the derivation of the equat
 
 ## Using the Excel Template
 
+[See this guide for using the excel template that is provided.](excel.md)
+
 ## Using the API
+
+[See this guide for using the python API.](api.md)

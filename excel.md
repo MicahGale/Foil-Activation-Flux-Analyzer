@@ -33,4 +33,20 @@ This sheet documents where the foils are located in the pile. Every foil must ha
 
 
 ### CountData
-This sheet includes the data for the counting sessions of th foils.
+This sheet includes the data for the counting sessions of the foils. The columns are:
+
+* **Foil** The foil measured. Each counting session for each foil needs its own row.
+* **Count Start** The start time of the counting session.
+* **Count End** the End time of the counting session.
+* **Counts** The total numbers of counts measured during the counting session.
+* **Background** The number of counts which were measured during the background couting session.
+* **BG_TIME (minutes)** The length of the background counting session measured in minutes.
+
+### Foil Data
+The properties of the foils which were used. Note that the current templete includes the foil data found in Gale's thesis.
+
+* **Foil** The foil identifier.
+* **Material** The element which the foil is made out of. This could be used to later expand into non-indium foil activations.
+* **Diameter (in)** The diameter of the foil measured in inches.
+* **Thickness (in)** The average thickness of the foil measured in inches usually in the center of the foil.
+* **Mass (g)** The mass of the foil measured in grams.
